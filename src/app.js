@@ -1,24 +1,33 @@
 const express = require('express')
+const connectDB = require('./config/database')
 const app = express();
+const User = require('./models/users')
 
-// req handler
-app.get('/user', (req, res) => {
-    res.send("get method")
-})
-app.post('/user', (req, res) => {
-    res.send("get method")
-})
+app.post('/signup', async (req, res) => {
+    try {
+        console.log("API called");
+        const user = new User({
+            firstName: "Ashika",
+            lastName: "Singh",
+            emailId: "amitsingh@gmail.com",
+            password: "amitdddd"
+        });
 
-app.delete('/user', (req, res) => {
-    res.send("get method")
-})
-app.use('/', (req, res) => {
-    res.send('from server')
-})
+        const savedUser = await user.save();
+        console.log(savedUser);
 
-app.use('/Hello', (req, res) => {
-    res.send('hello ...from server')
-})
-app.listen(3000, () => {
-    console.log("Server is running ");
+        res.send("User added successfully");
+    } catch (err) {
+        console.error(err);
+        res.status(500).send(err.message);
+    }
+});
+
+connectDB().then(() => {
+    console.log("database connect");
+    app.listen(3000, () => {
+        console.log("Server is running ");
+    })
+}).catch(err => {
+    console.log('not connected');
 })
