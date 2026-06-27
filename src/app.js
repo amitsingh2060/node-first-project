@@ -39,13 +39,33 @@ app.get("/feed", async (req, res) => {
     }
 })
 
+app.delete('/user', async (req, res) => {
+    try {
+        const userId = req.body.userId;
+        const user = await User.findByIdAndDelete(userId);
+        res.send("successful deleted")
+    } catch (error) {
+        res.status(400).send('not found')
+    }
+})
+
+app.patch('/user', async (req, res) => {
+    const userId = req.body.userId;
+    const data = req.body;
+    try {
+        await User.findByIdAndUpdate({ _id: userId }, data)
+        res.send("update successful")
+    } catch (error) {
+        res.status(400).send("something went wrong")
+    }
+})
 connectDB().then(() => {
     console.log("database connect");
     app.listen(3000, () => {
         console.log("Server is running ");
     })
 }).catch(err => {
-    console.log('not connected');
+    console.log('not connected', err);
 })
 
 // const userSchema = new mongoose.Schema({
