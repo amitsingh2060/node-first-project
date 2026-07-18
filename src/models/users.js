@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-
+var validator = require('validator');
 const userSchema = new mongoose.Schema({
     firstName: {
         type: String,
@@ -14,11 +14,20 @@ const userSchema = new mongoose.Schema({
         lowercase: true,
         required: true,
         unique: true,
-        trim: true
-
+        trim: true,
+        validate(value) {
+            if (!validator.isEmail(value)) {
+                throw new Error("not valid email")
+            }
+        }
     },
     password: {
-        type: String
+        type: String,
+        validate(value) {
+            if (!validator.isStrongPassword(value)) {
+                throw new Error("not strong pass")
+            }
+        }
     },
     age: {
         type: Number,
@@ -34,7 +43,12 @@ const userSchema = new mongoose.Schema({
     },
     photoUrl: {
         type: String,
-        default: 'https://media.gettyimages.com/id/105784015/photo/seamstress-in-her-studio.jpg?s=612x612&w=gi&k=20&c=HE1wVs1ud-WkYHTq6RoHDarK0dVgRz8bAK5wLUp33Ls='
+        default: 'https://media.gettyimages.com/id/105784015/photo/seamstress-in-her-studio.jpg?s=612x612&w=gi&k=20&c=HE1wVs1ud-WkYHTq6RoHDarK0dVgRz8bAK5wLUp33Ls=',
+        validate(value) {
+            if (!validator.isURL(value)) {
+                throw new Error("not valid url")
+            }
+        }
     },
     about: {
         type: String,
