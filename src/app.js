@@ -1,10 +1,15 @@
 const express = require('express')
 const connectDB = require('./config/database')
+const cookieParser = require('cookie-parser')
+const jwt = require('jsonwebtoken');
 const app = express();
 const User = require('./models/users')
 const bcrypt = require('bcrypt');
-const { validateSignup } = require('./utils/validation')
+const { validateSignup } = require('./utils/validation');
+const { toInt } = require('validator');
+const { userAuth } = require('./middlewares/auth');
 app.use(express.json())
+app.use(cookieParser())
 
 app.post('/signup', async (req, res) => {
     try {
@@ -14,7 +19,7 @@ app.post('/signup', async (req, res) => {
         const { firstName, lastName, emailId, password } = req.body
         // Encrypt the password
         const passwordHash = await bcrypt.hash(password, 10);
-        console.log("passwordHash", passwordHash);
+        // console.log("passwordHash", passwordHash);
 
         // Creating a new instance of the user model
         const user = new User({
@@ -40,73 +45,42 @@ app.post('/login', async (req, res) => {
             throw new Error("Emaul is not in db")
         }
 
-        const isPasswordValid = await bcrypt.compare(password, user.password);
+        // const isPasswordValid = await bcrypt.compare(password, user.password);
+        const isPasswordValid = await user.validatePassword(password);
         if (!isPasswordValid) {
             return res.status(401).send("Invalid email or password");
         }
+        // Create JWT
+        // const token = jwt.sign(
+        //     { _id: user._id, emailId: user.emailId },
+        //     "mySecretKey",
+        //     { expiresIn: '1d' }
+        // )
+        const token = user.getJWT();
+        console.log("token", token);
+        // Add the token to cookies and send respons to the user 
+        res.cookie("token", token, {
+            // httpOnly: true,
+            // maxAge: 24 * 60 * 60 * 1000
+            expires: new Date(Date.now() + 24 * 60 * 60 * 1000) // 1 day from now
+        });
         return res.status(200).send("Login successful");
     } catch (error) {
         return res.status(500).send("Something went wrong");
     }
 })
 
-app.get("/user", async (req, res) => {
+app.get("/profile", userAuth, async (req, res) => {
     try {
-        const emailId = req.body.emailId;
-        const user = await User.find({ emailId: emailId })
-        if (user.length === 0) {
-            res.status(404).send('user not found')
-        } else {
-            res.send(user)
-        }
-    } catch {
-        res.status(400).send("wrong")
-    }
-})
-
-app.get("/feed", async (req, res) => {
-    try {
-        const users = await User.find({})
-        res.send(users)
+        res.send(req.user);
     } catch (error) {
-        res.status(404).send('something went wrong')
+        res.status(500).send("Something went wrong");
     }
-})
+});
 
-app.delete('/user', async (req, res) => {
-    try {
-        const userId = req.body.userId;
-        const user = await User.findByIdAndDelete(userId);
-        res.send("successful deleted")
-    } catch (error) {
-        res.status(400).send('not found')
-    }
-})
-
-app.patch('/user/:userId', async (req, res) => {
-    const userId = req.params?.userId;
-    const data = req.body;
-
-    try {
-        const ALLOWED_UPDATES = ["photoUrl", "about", "gender", "age"]
-
-        const isUpdateAllowed = Object.keys(data).every((k) =>
-            ALLOWED_UPDATES.includes(k)
-        )
-        if (!isUpdateAllowed) {
-            throw new Error("update not allowed")
-        }
-        if (data.skills.length > 10) {
-            throw new Error("can not be more then 10")
-        }
-        await User.findByIdAndUpdate({ _id: userId }, data, {
-            returnDocument: 'after',
-            runValidators: true
-        })
-        res.send("update successful")
-    } catch (error) {
-        res.status(400).send("UPDATE FAILED " + error.message)
-    }
+app.post('/sendConnectionRequest', userAuth, async (req, res) => {
+    const user = req.user;
+    res.send(user.firstName + "Connectiion Request sent")
 })
 connectDB().then(() => {
     console.log("database connect");
