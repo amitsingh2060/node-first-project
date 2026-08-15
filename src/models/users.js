@@ -38,11 +38,15 @@ const userSchema = new mongoose.Schema({
     },
     gender: {
         type: String,
-        validate(value) {
-            if (!['male', 'female', 'others'].includes(value)) {
-                throw new Error("Gener invalid")
-            }
+        enum: {
+            values: ['male', 'female', 'other'],
+            message: `{VALUE} is not valid`
         }
+        // validate(value) {
+        //     if (!['male', 'female', 'others'].includes(value)) {
+        //         throw new Error("Gener invalid")
+        //     }
+        // }
     },
     photoUrl: {
         type: String,
@@ -61,7 +65,8 @@ const userSchema = new mongoose.Schema({
         type: [String]
     }
 }, { timestamps: true })
-
+//compound index
+userSchema.index({ firstName: 1, lastName: 1 })
 
 userSchema.methods.getJWT = function () {
     const user = this;
