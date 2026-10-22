@@ -58,4 +58,20 @@ requestRouter.post('/request/send/:status/:toUserId', userAuth, async (req, res)
     // res.send(user.firstName + " Connectiion Request sent")
 })
 
+
+requestRouter.post('/request/review/:status/:requestID', userAuth, async (req, res) => {
+    try {
+        const loggedInUser = req.user;
+        console.log(loggedInUser, "loggedInUser");
+        res.json({
+            message: "Success",
+            loggedInUser
+        });
+    } catch (error) {
+        console.log(error);
+        res.status(400).send("ERROR " + error.message);
+    }
+})
+
+
 module.exports = requestRouter;
