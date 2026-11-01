@@ -2,10 +2,14 @@ const mongoose = require('mongoose');
 
 const connectionRequestSchema = new mongoose.Schema({
     fromUserId: {
-        type: mongoose.Schema.Types.ObjectId
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required: true,
     },
     toUserId: {
-        type: mongoose.Schema.Types.ObjectId
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+
     },
     status: {
         type: String,
@@ -26,7 +30,7 @@ connectionRequestSchema.pre('save', function (next) {
         throw new Error("You can not send a connection request to your self")
         // return next(new Error('You can not send a connection request to your self'))
     }
-    next()
+    //next()
 })
 // Compound index
 connectionRequestSchema.index({ fromUserId: 1, toUserId: 1 })

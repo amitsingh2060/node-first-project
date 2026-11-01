@@ -33,36 +33,43 @@ authRouter.post('/signup', async (req, res) => {
 
 authRouter.post('/login', async (req, res) => {
     try {
-        const { emailId, password } = req.body
-        const user = await User.findOne({ emailId: emailId })
+        const { emailId, password } = req.body;
+
+        const user = await User.findOne({ emailId });
+
         if (!user) {
-            throw new Error("Emaul is not in db")
+            return res.status(401).json({
+                message: "Invalid email or password"
+            });
         }
 
-        // const isPasswordValid = await bcrypt.compare(password, user.password);
         const isPasswordValid = await user.validatePassword(password);
+
         if (!isPasswordValid) {
-            return res.status(401).send("Invalid email or password");
+            return res.status(401).json({
+                message: "Invalid email or password"
+            });
         }
-        // Create JWT
-        // const token = jwt.sign(
-        //     { _id: user._id, emailId: user.emailId },
-        //     "mySecretKey",
-        //     { expiresIn: '1d' }
-        // )
+
         const token = user.getJWT();
-        console.log("token", token);
-        // Add the token to cookies and send respons to the user 
+
         res.cookie("token", token, {
-            // httpOnly: true,
-            // maxAge: 24 * 60 * 60 * 1000
-            expires: new Date(Date.now() + 24 * 60 * 60 * 1000) // 1 day from now
+            httpOnly: true,
+            expires: new Date(Date.now() + 24 * 60 * 60 * 1000)
         });
-        return res.status(200).send("Login successful");
+
+        return res.status(200).json({
+            message: "Login successful"
+        });
+
     } catch (error) {
-        return res.status(500).send("Something went wrong");
+        console.error(error);
+
+        return res.status(500).json({
+            message: "Something went wrong"
+        });
     }
-})
+});
 
 authRouter.post('/logout', async (req, res) => {
     res.cookie('token', null, {

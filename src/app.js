@@ -1,42 +1,35 @@
-const express = require('express')
-const connectDB = require('./config/database')
-const cookieParser = require('cookie-parser')
+const express = require('express');
+const connectDB = require('./config/database');
+const cookieParser = require('cookie-parser');
+const cors = require('cors');
+
 const app = express();
-const User = require('./models/users')
-const { toInt } = require('validator');
+
 const authRouter = require('./routes/auth');
 const profilerRouter = require('./routes/profile');
 const requestRouter = require('./routes/request');
-app.use(express.json())
-app.use(cookieParser())
+const userRouter = require('./routes/user');
 
+app.use(cors({
+    origin: "http://localhost:4000",
+    credentials: true
+}));
 
+app.use(express.json());
+app.use(cookieParser());
 
-app.use('/', authRouter)
+app.use('/', authRouter);
 app.use('/', profilerRouter);
-app.use('/', requestRouter)
-
-
+app.use('/', requestRouter);
+app.use('/', userRouter);
 
 connectDB().then(() => {
-    console.log("database connect");
+    console.log("Database connected");
+
     app.listen(3000, () => {
-        console.log("Server is running ");
-    })
+        console.log("Server is running on port 3000");
+    });
+
 }).catch(err => {
-    console.log('not connected', err);
-})
-
-// const userSchema = new mongoose.Schema({
-//   firstName: String,
-//   age: Number
-// });
-
-// const User = mongoose.model("User", userSchema);
-
-// const user = new User({
-//   firstName: "Amit",
-//   age: 25
-// });
-
-// await user.save();
+    console.log('Not connected', err);
+});
