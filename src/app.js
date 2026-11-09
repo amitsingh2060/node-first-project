@@ -11,7 +11,10 @@ const requestRouter = require('./routes/request');
 const userRouter = require('./routes/user');
 
 app.use(cors({
-    origin: "http://localhost:4000",
+    origin: [
+        "http://localhost:4000",
+        "http://15.134.225.211"
+    ],
     credentials: true
 }));
 
