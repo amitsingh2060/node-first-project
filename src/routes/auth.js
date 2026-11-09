@@ -59,7 +59,8 @@ authRouter.post('/login', async (req, res) => {
         });
 
         return res.status(200).json({
-            message: "Login successful"
+            message: "Login successful",
+            data: user
         });
 
     } catch (error) {
@@ -71,12 +72,16 @@ authRouter.post('/login', async (req, res) => {
     }
 });
 
-authRouter.post('/logout', async (req, res) => {
-    res.cookie('token', null, {
-        expires: new Date(Date.now())
-    })
-    res.send("Logout Successfull")
-})
+authRouter.post("/logout", async (req, res) => {
+    res.cookie("token", null, {
+        expires: new Date(Date.now()),
+        httpOnly: true
+    });
+
+    res.status(200).json({
+        message: "Logout successful"
+    });
+});
 
 authRouter.post('/forgot-password', async (req, res) => {
     try {
